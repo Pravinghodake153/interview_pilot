@@ -75,7 +75,14 @@ export async function POST(req: Request, context: RouteContext) {
           orderBy: { createdAt: "asc" },
           select: { role: true, content: true },
         },
-        jobRole: true,
+        jobRole: {
+          include: {
+            questions: {
+              where: { isActive: true },
+              orderBy: { order: "asc" },
+            },
+          },
+        },
       },
     });
 
@@ -177,9 +184,27 @@ export async function POST(req: Request, context: RouteContext) {
       achievements: studentProfile.achievements,
     } : null);
 
+    const [targetSkillsSetting, interviewerSkillSetting] = await Promise.all([
+      prisma.systemSetting.findUnique({ where: { key: "DYNAMIC_TARGET_SKILLS" } }),
+      prisma.systemSetting.findUnique({ where: { key: "DYNAMIC_INTERVIEWER_SKILL" } }),
+    ]);
+
+    const adminTargetSkills =
+      interview.jobRole?.targetSkills ||
+      targetSkillsSetting?.value ||
+      "System Architecture, Big-O Complexity, Code Modularity, Ambition & Ownership";
+
+    let adminTopicsDirective = `\n\nADMIN EVALUATION TARGET SKILLS FOR THIS INTERVIEW:\n${adminTargetSkills}\n`;
+    if (interview.jobRole?.questions && interview.jobRole.questions.length > 0) {
+      const topicsList = interview.jobRole.questions
+        .map((q, idx) => `${idx + 1}. [${q.category.toUpperCase()}] ${q.title}: "${q.promptText.slice(0, 100)}..."`)
+        .join("\n");
+      adminTopicsDirective += `\nADMIN CONFIGURED STAGES & QUESTIONS TO PROBE:\n${topicsList}\n`;
+    }
+
     const systemPrompt = isDynamicMode
-      ? `${baseSystemPrompt}${dynamicInterviewerPrompt}${profileDirective}`
-      : `${baseSystemPrompt}${profileDirective}`;
+      ? `${baseSystemPrompt}${dynamicInterviewerPrompt}${adminTopicsDirective}${profileDirective}`
+      : `${baseSystemPrompt}${adminTopicsDirective}${profileDirective}`;
 
     // Build full user prompt combining message + editor code + execution result into a single payload
     let fullUserMessage = message;

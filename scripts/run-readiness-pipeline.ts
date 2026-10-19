@@ -128,15 +128,15 @@ async function main() {
     resumeText: updatedProfile.resumeText,
     resumePageCount: updatedProfile.resumePageCount,
     targetRole: updatedProfile.targetRole,
-    skills: updatedProfile.skills,
+    skills: (updatedProfile.skills as string[]) || [],
     githubUsername: updatedProfile.githubUsername,
     linkedinUrl: updatedProfile.linkedinUrl,
-    projects: updatedProfile.projects,
-    achievements: updatedProfile.achievements,
+    projects: updatedProfile.projects as any,
+    achievements: updatedProfile.achievements as any,
   });
 
   console.log(`✓ Audit complete! Overall Audit Score: ${auditReport.overallScore}/100`);
-  console.log(`- Resume Check Score: ${auditReport.resumeCheck.score}/100 (ATS: ${auditReport.resumeCheck.atsScore}/100)`);
+  console.log(`- Resume Check Score: ${auditReport.resumeCheck.score}/100`);
   console.log(`- Codebase Check Score: ${auditReport.codebaseCheck.score}/100`);
   console.log(`- Live Link Check Score: ${auditReport.liveLinkCheck.score}/100`);
   console.log(`- LinkedIn Check Score: ${auditReport.linkedinCheck.score}/100`);

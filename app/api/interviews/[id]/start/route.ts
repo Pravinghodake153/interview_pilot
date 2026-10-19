@@ -37,6 +37,16 @@ export async function POST(req: Request, context: RouteContext) {
 
     const interview = await prisma.interview.findUnique({
       where: { id, userId: user.id },
+      include: {
+        jobRole: {
+          include: {
+            questions: {
+              where: { isActive: true },
+              orderBy: { order: "asc" },
+            },
+          },
+        },
+      },
     });
 
     if (!interview) {
@@ -126,6 +136,26 @@ export async function POST(req: Request, context: RouteContext) {
       achievements: studentProfile.achievements,
     } : null);
 
+    // Admin target skills and custom topics configured from Admin Dashboard
+    const [targetSkillsSetting, interviewerSkillSetting] = await Promise.all([
+      prisma.systemSetting.findUnique({ where: { key: "DYNAMIC_TARGET_SKILLS" } }),
+      prisma.systemSetting.findUnique({ where: { key: "DYNAMIC_INTERVIEWER_SKILL" } }),
+    ]);
+
+    const adminTargetSkills =
+      interview.jobRole?.targetSkills ||
+      targetSkillsSetting?.value ||
+      "System Architecture, Big-O Complexity, Code Modularity, Ambition & Ownership";
+
+    // Admin-added custom questions/topics from the Job Role Question Bank
+    let adminTopicsDirective = `\nADMIN EVALUATION TARGET SKILLS FOR THIS INTERVIEW:\n${adminTargetSkills}\n`;
+    if (interview.jobRole?.questions && interview.jobRole.questions.length > 0) {
+      const topicsList = interview.jobRole.questions
+        .map((q, idx) => `${idx + 1}. [${q.category.toUpperCase()}] ${q.title}: "${q.promptText.slice(0, 100)}..."`)
+        .join("\n");
+      adminTopicsDirective += `\nADMIN CONFIGURED STAGES & QUESTIONS TO PROBE:\n${topicsList}\n`;
+    }
+
     // Generate AI's opening message
     const baseSystemPrompt = buildInterviewerSystemPrompt({
       problemTitle: interview.problemTitle,
@@ -137,7 +167,7 @@ export async function POST(req: Request, context: RouteContext) {
       voiceId: voiceId || "local_female",
     });
 
-    const systemPrompt = `${baseSystemPrompt}${profileDirective}`;
+    const systemPrompt = `${baseSystemPrompt}${adminTopicsDirective}${profileDirective}`;
 
     let openingPrompt = `The candidate has just joined the interview. Introduce yourself as ${interviewerName} warmly.`;
     if (studentProfile && Array.isArray(studentProfile.skills) && studentProfile.skills.length > 0) {
