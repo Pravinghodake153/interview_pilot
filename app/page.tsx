@@ -31,16 +31,18 @@ export default async function HomePage() {
           <ThemeToggle />
           {!isUserSignedIn ? (
             <>
-              <SignInButton mode="modal">
-                <button className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="inline-flex h-9 items-center justify-center rounded-md bg-foreground px-4 text-xs font-medium text-background transition-colors hover:bg-foreground/90 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
+              <Link
+                href="/sign-in"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-foreground px-4 text-xs font-medium text-background transition-colors hover:bg-foreground/90 cursor-pointer"
+              >
+                Sign Up
+              </Link>
             </>
           ) : (
             <>
@@ -80,11 +82,12 @@ export default async function HomePage() {
                 Go to Dashboard
               </Link>
             ) : (
-              <SignUpButton mode="modal">
-                <button className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer">
-                  Start Practicing Free
-                </button>
-              </SignUpButton>
+              <Link
+                href="/sign-up"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+              >
+                Start Practicing Free
+              </Link>
             )}
           </div>
         </div>
