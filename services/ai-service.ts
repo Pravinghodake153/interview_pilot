@@ -19,10 +19,10 @@ export interface ChatMessage {
 
 export async function getProviderConfig() {
   // Default fallbacks from environment
-  let activeProvider = "gemini";
-  let activeModel = "gemini-2.5-flash";
-  let reportProvider = "gemini";
-  let reportModel = "gemini-2.5-flash";
+  let activeProvider = "openrouter";
+  let activeModel = "openrouter/free";
+  let reportProvider = "openrouter";
+  let reportModel = "openrouter/free";
   let geminiKey = process.env.GEMINI_API_KEY || "";
   let zaiKey = process.env.ZAI_API_KEY || "511ba8c060534cd2b50e8e78170d4ed2.6hEKr2c10VeIHk3c";
   let openrouterKey = process.env.OPENROUTER_API_KEY || "";
@@ -266,12 +266,14 @@ export async function deepseekChatStream(
     });
   }
 
-  // Add OpenRouter backups if available
+  // Add OpenRouter backups if available (prioritizing active free models)
   if (config.openrouter.key) {
     failoverChain.push(
-      { model: "deepseek/deepseek-chat", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key },
+      { model: "google/gemma-4-31b-it:free", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key },
+      { model: "liquid/lfm-2.5-2.6b:free", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key },
+      { model: "openrouter/free", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key },
       { model: "google/gemini-2.5-flash", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key },
-      { model: "qwen/qwen-2.5-72b-instruct", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key }
+      { model: "deepseek/deepseek-chat", provider: "openrouter", url: config.openrouter.url, key: config.openrouter.key }
     );
   }
 
